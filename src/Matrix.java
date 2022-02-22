@@ -1,65 +1,93 @@
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
-abstract public class Matrix<T extends Number> {
-    private List<List<T>> matrix;
+public class Matrix {
+    private final List<List<Double>> data;
 
-    public Matrix() {
-        matrix = new ArrayList<>();
-    }
+    public Matrix(int numberOfRows, int numberOfColumns, double initialValue) throws IllegalArgumentException {
+        data = new ArrayList<>();
 
-    public Matrix(int numberOfRows, int numberOfColumns) {
-        matrix = new ArrayList<>();
         for (int i = 0; i < numberOfRows; i++) {
-            matrix.add(new ArrayList<>(numberOfColumns));
+            List<Double> newRow = new ArrayList<>();
+            for (int j = 0; j < numberOfColumns; j++) {
+                newRow.add(initialValue);
+            }
+            data.add(newRow);
         }
     }
 
-    public Matrix(List<List<T>> rows) {
-        matrix = new ArrayList<>();
-        for (List<T> row : rows) {
-            matrix.add(new ArrayList<>(row));
+    public Matrix(File input) throws IOException, IllegalArgumentException {
+        Scanner s = new Scanner(input);
+
+        data = new ArrayList<>();
+        while (s.hasNextLine()) {
+            List<Double> newRow = new ArrayList<>();
+            while (s.hasNextDouble()) {
+                newRow.add(s.nextDouble());
+            }
+            data.add(newRow);
         }
     }
 
-    public T get(int row, int col) {
-        return matrix.get(row).get(col);
+
+
+    private void importFromFile(File input) throws IOException {
+
     }
 
-    public void set(int row, int col, T value) {
-        matrix.get(row).set(col, value);
+    public double get(int row, int col) {
+        return data.get(row).get(col);
     }
 
-    Matrix<T> (Matrix<T> right) {
-        
+    public void set(int row, int col, double value) {
+        data.get(row).set(col, value);
     }
-
-    abstract T multiply(T other);
 
     public int numberOfRows() {
-        return matrix.size();
+        return data.size();
     }
 
     public int numberOfColumns() {
-        if (matrix.isEmpty()) {
+        if (data.isEmpty()) {
             return 0;
         }
-        return matrix.get(0).size();
+        return data.get(0).size();
     }
 
-    @Override
+    Matrix multiply(Matrix right) {
+        Matrix result = new Matrix(numberOfRows(), right.numberOfColumns(), 0.0);
+
+        for (int i = 0; i < numberOfRows(); i++) {
+            for (int j = 0; j < right.numberOfColumns(); j++) {
+                double scalarProduct = 0;
+
+                for (int k = 0; k < numberOfColumns(); k++) {
+                    scalarProduct += get(i, k) * right.get(k, j);
+                }
+
+                result.set(i, j, scalarProduct);
+            }
+        }
+        return result;
+    }
+
     public String toString() {
+        if (numberOfRows() < 1 || numberOfColumns() < 1) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < numberOfRows(); i++) {
-            for (int j = 0; j < numberOfColumns() - 1; i++) {
-                sb.append(matrix.get(i).get(j));
+            for (int j = 0; j < numberOfColumns() - 1; j++) {
+                sb.append(data.get(i).get(j));
                 sb.append(" ");
             }
-            sb.append(matrix.get(i).get(numberOfColumns() - 1));
+            sb.append(data.get(i).get(numberOfColumns() - 1));
             sb.append("\n");
         }
         return sb.toString();
     }
+
 }
-
-
