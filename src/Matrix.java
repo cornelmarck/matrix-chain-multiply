@@ -1,93 +1,141 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
 public class Matrix {
-    private final List<List<Double>> data;
+    private final double[][] data;
 
-    public Matrix(int numberOfRows, int numberOfColumns, double initialValue) throws IllegalArgumentException {
-        data = new ArrayList<>();
+    public Matrix(int nRows, int nColumns) {
+        data = new double[nRows][nColumns];
+    }
 
-        for (int i = 0; i < numberOfRows; i++) {
-            List<Double> newRow = new ArrayList<>();
-            for (int j = 0; j < numberOfColumns; j++) {
-                newRow.add(initialValue);
+    public Matrix(File input) {
+        data = parse(readByLine(input));
+    }
+
+    private double[][] parse(List<String> lines) {
+        int nRows = lines.size();
+        int nColumns = (nRows == 0) ? 0 : lines.get(0).split(" ").length;
+        double[][] data = new double[nRows][nColumns];
+
+        for (int i = 0; i < nRows; i++) {
+            String[] rawNumbers = lines.get(i).split(" ");
+            for (int j = 0; j < nColumns; j++) {
+                data[i][j] = Double.parseDouble(rawNumbers[j]);
             }
-            data.add(newRow);
         }
+        return data;
     }
 
-    public Matrix(File input) throws IOException, IllegalArgumentException {
-        Scanner s = new Scanner(input);
+    private List<String> readByLine(File input){
+        List<String> lines = new ArrayList<>();
 
-        data = new ArrayList<>();
-        while (s.hasNextLine()) {
-            List<Double> newRow = new ArrayList<>();
-            while (s.hasNextDouble()) {
-                newRow.add(s.nextDouble());
+        try {
+            Scanner lineReader = new Scanner(input);
+
+            while (lineReader.hasNextLine()) {
+                String currentLine = lineReader.nextLine();
+                if (currentLine.equals(System.lineSeparator())) {
+                    break;
+                }
+                lines.add(currentLine);
             }
-            data.add(newRow);
+            lineReader.close();
         }
+        catch (IOException ignored) {}
+
+        return lines;
     }
 
-
-
-    private void importFromFile(File input) throws IOException {
-
-    }
-
-    public double get(int row, int col) {
-        return data.get(row).get(col);
-    }
-
-    public void set(int row, int col, double value) {
-        data.get(row).set(col, value);
-    }
-
-    public int numberOfRows() {
-        return data.size();
-    }
-
-    public int numberOfColumns() {
-        if (data.isEmpty()) {
-            return 0;
-        }
-        return data.get(0).size();
+    public Matrix(List<String> rawLines) {
+        data = parse(rawLines);
     }
 
     Matrix multiply(Matrix right) {
-        Matrix result = new Matrix(numberOfRows(), right.numberOfColumns(), 0.0);
-
-        for (int i = 0; i < numberOfRows(); i++) {
-            for (int j = 0; j < right.numberOfColumns(); j++) {
+        if (!isMultiplyAllowed(right)) {
+            String errorMessage = String.format("Incompatible matrix dimensions: %dx%d and %dx%d",
+                    nRows(), nColumns(), right.nRows(), right.nColumns());
+            throw new IllegalArgumentException(errorMessage);
+        }
+        Matrix result = new Matrix(nRows(), right.nColumns());
+        for (int i = 0; i < nRows(); i++) {
+            for (int j = 0; j < right.nColumns(); j++) {
                 double scalarProduct = 0;
-
-                for (int k = 0; k < numberOfColumns(); k++) {
+                for (int k = 0; k < nColumns(); k++) {
                     scalarProduct += get(i, k) * right.get(k, j);
                 }
-
                 result.set(i, j, scalarProduct);
             }
         }
         return result;
     }
 
-    public String toString() {
-        if (numberOfRows() < 1 || numberOfColumns() < 1) {
-            return "";
+    public boolean isMultiplyAllowed(Matrix right) {
+        return nColumns() == right.nRows();
+    }
+
+    public int nRows() {
+        return data.length;
+    }
+
+    public int nColumns() {
+        if (data.length == 0) {
+            return 0;
         }
+        return data[0].length;
+    }
+
+    public double get(int row, int col) {
+        return data[row][col];
+    }
+
+    public void set(int row, int col, double value) {
+        data[row][col] = value;
+    }
+
+    public int getMultiplyTimeComplexity(Matrix right) {
+        return nRows() * nColumns() * right.nColumns();
+    }
+
+    public Matrix getTranspose() {
+        Matrix result = new Matrix(nColumns(), nRows());
+        for (int i = 0; i < nRows(); i++) {
+            for (int j = 0; j < nColumns(); j++) {
+                result.set(j, i, get(i, j));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(data);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Matrix matrix = (Matrix) o;
+
+        return Arrays.deepEquals(this.data, matrix.data);
+    }
+
+    @Override
+    public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < numberOfRows(); i++) {
-            for (int j = 0; j < numberOfColumns() - 1; j++) {
-                sb.append(data.get(i).get(j));
+        for (int i = 0; i < nRows(); i++) {
+            for (int j = 0; j < nColumns(); j++) {
+                sb.append(get(i, j));
                 sb.append(" ");
             }
-            sb.append(data.get(i).get(numberOfColumns() - 1));
-            sb.append("\n");
+            sb.append(System.lineSeparator());
         }
         return sb.toString();
     }
-
 }

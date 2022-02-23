@@ -1,26 +1,56 @@
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
-import java.io.IOException;
 
-import
+import static org.junit.jupiter.api.Assertions.*;
+
 class MatrixTest {
+    public static final String ROOT = "test/resources/matrix/";
 
-    @org.junit.jupiter.api.Test
+    @Test
+    void constructEmpty() {
+        Matrix m = new Matrix(4,3);
+        assertEquals(0.0, m.get(3, 2));
+    }
+
+    @Test
+    void constructFromFile() {
+        Matrix m = new Matrix(new File(ROOT + "3x4.txt"));
+        assertEquals(3, m.nRows());
+        assertEquals(4, m.nColumns());
+
+        assertEquals(1, m.get(0, 0));
+        assertEquals(4, m.get(0, 3));
+        assertEquals(10, m.get(2, 1));
+    }
+
+    @Test
+    void constructFromInvalidFile() {
+        Matrix m = new Matrix(new File("asdfasdf.txt"));
+        assertEquals(0, m.nRows());
+    }
+
+    @Test
+    void equals() {
+        Matrix a = new Matrix(new File(ROOT + "3x4.txt"));
+        Matrix b = new Matrix(new File(ROOT + "3x4.txt"));
+        assertEquals(a, b);
+    }
+
+    @Test
     void multiply() {
-        StringBuilder sb = new StringBuilder();
+        Matrix a = new Matrix(new File(ROOT + "3x4.txt"));
+        Matrix b = new Matrix(new File(ROOT + "4x2.txt"));
+        Matrix c = new Matrix(new File(ROOT + "3x2.txt"));
+        assertEquals(c, a.multiply(b));
     }
 
-    @org.junit.jupiter.api.Test
-    void MatrixFromFile() throws IOException {
-        Matrix m = new Matrix(new File("test/resources/2x3.txt"));
 
-        assertEquals(2, m.numberOfRows());
-        assertEquals(3, m.numberOfColumns());
-    }
 
-    @org.junit.jupiter.api.Test
-    void testToString() {
-        Matrix m = new Matrix(3, 2, 0.0);
 
-        System.out.println(m);
-    }
+
+
+
+
+
 }
